@@ -1,0 +1,917 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FLAG QUIZ</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+
+    /* Original-style background, generated locally with CSS */
+    background:
+        radial-gradient(circle at 15% 20%, rgba(84,180,170,.24) 0 2px, transparent 3px),
+        radial-gradient(ellipse at 85% 20%, rgba(123,190,160,.18), transparent 35%),
+        radial-gradient(ellipse at 20% 85%, rgba(55,130,170,.25), transparent 40%),
+        linear-gradient(135deg, #102b3f, #17444a 55%, #13253c);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Decorative background pattern */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    opacity: .13;
+    background:
+        repeating-linear-gradient(
+            0deg,
+            transparent 0px,
+            transparent 49px,
+            rgba(255,255,255,.12) 50px
+        ),
+        repeating-linear-gradient(
+            90deg,
+            transparent 0px,
+            transparent 49px,
+            rgba(255,255,255,.12) 50px
+        );
+}
+
+.quiz,
+#difficulty-selection {
+    position: relative;
+    z-index: 1;
+    background: rgba(255,255,255,.95);
+    width: 380px;
+    max-width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 18px;
+    border-radius: 15px;
+    box-shadow: 0 0 20px rgba(0,0,0,.5);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+}
+
+h2 {
+    font-size: 21px;
+    margin: 8px 0 14px;
+}
+
+.flag-box {
+    width: 100%;
+    height: 160px;
+    margin: 10px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.flag-box img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,.3);
+}
+
+.flag-fallback {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: #e9edf0;
+    border-radius: 8px;
+    font-size: 65px;
+}
+
+.flag-fallback small {
+    font-size: 15px;
+    color: #555;
+    font-weight: bold;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+#options {
+    flex-grow: 1;
+}
+
+button {
+    width: 100%;
+    padding: 10px;
+    margin: 6px 0;
+    font-size: 16px;
+    font-weight: 500;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform .15s, filter .15s;
+}
+
+button:hover:enabled {
+    transform: scale(1.03);
+    filter: brightness(.94);
+}
+
+button:disabled {
+    opacity: .65;
+    cursor: not-allowed;
+}
+
+.easy {
+    background: #28a745;
+    color: white;
+}
+
+.normal {
+    background: #ffc107;
+    color: #222;
+}
+
+.difficult {
+    background: #ff0000;
+    color: white;
+}
+
+.very-difficult {
+    background: #800080;
+    color: white;
+}
+
+.hardcore {
+    background: #000;
+    color: red;
+}
+
+.score {
+    font-size: 16px;
+    font-weight: bold;
+    margin-top: 8px;
+}
+
+#message {
+    margin-top: 8px;
+    font-weight: bold;
+    min-height: 24px;
+}
+
+#homeButton {
+    position: fixed;
+    z-index: 10;
+    top: 10px;
+    left: 10px;
+    width: auto;
+    padding: 6px 10px;
+    font-size: 20px;
+    border-radius: 8px;
+    background: white;
+    border: 2px solid #ccc;
+    box-shadow: 0 0 8px rgba(0,0,0,.3);
+}
+
+#homeButton:hover:enabled {
+    box-shadow: 0 0 10px gold;
+}
+
+@media (max-width: 430px) {
+    body {
+        padding: 12px;
+    }
+
+    .quiz,
+    #difficulty-selection {
+        width: 100%;
+        padding: 15px;
+    }
+
+    h2 {
+        font-size: 19px;
+    }
+
+    .flag-box {
+        height: 145px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<!-- Home button -->
+<button id="homeButton" onclick="goToMenu()" disabled>🏠</button>
+
+<!-- Difficulty selection -->
+<div id="difficulty-selection">
+
+    <h2>CHOOSE YOUR DIFFICULTY:</h2>
+
+    <button class="easy" onclick="startGame('easy')">
+        😄 EASY (25) 😄
+    </button>
+
+    <button class="normal" onclick="startGame('normal')">
+        😐 NORMAL (50) 😐
+    </button>
+
+    <button class="difficult" onclick="startGame('difficult')">
+        😡 DIFFICULT (100) 😡
+    </button>
+
+    <button class="very-difficult" onclick="startGame('veryDifficult')">
+        👿 VERY DIFFICULT (ALL) 👿
+    </button>
+
+    <button class="hardcore" onclick="startGame('hardcore')">
+        💀 HARDCORE (???) 💀
+    </button>
+
+</div>
+
+<!-- Quiz -->
+<div class="quiz" id="quiz" style="display:none;">
+
+    <h2>WHICH COUNTRY DOES THIS FLAG BELONG TO?</h2>
+
+    <div class="flag-box">
+
+        <img id="flag" alt="Country flag">
+
+        <div id="flagFallback" class="flag-fallback" hidden>
+            <span id="flagEmoji"></span>
+            <small id="flagCode"></small>
+        </div>
+
+    </div>
+
+    <div id="options"></div>
+
+    <div class="score" id="score"></div>
+
+    <div id="message"></div>
+
+    <div id="credits" style="margin-top:12px;font-size:12px;color:#555;min-height:14px;"></div>
+
+</div>
+
+<script>
+
+/* =========================================
+   COUNTRY DATABASE
+========================================= */
+
+const countries = [
+
+["Afghanistan","AF"],
+["Albania","AL"],
+["Algeria","DZ"],
+["Andorra","AD"],
+["Angola","AO"],
+["Antigua and Barbuda","AG"],
+["Argentina","AR"],
+["Armenia","AM"],
+["Australia","AU"],
+["Austria","AT"],
+["Azerbaijan","AZ"],
+["Bahamas","BS"],
+["Bahrain","BH"],
+["Bangladesh","BD"],
+["Barbados","BB"],
+["Belgium","BE"],
+["Belize","BZ"],
+["Benin","BJ"],
+["Bhutan","BT"],
+["Bolivia","BO"],
+["Bosnia and Herzegovina","BA"],
+["Botswana","BW"],
+["Brazil","BR"],
+["Brunei","BN"],
+["Bulgaria","BG"],
+["Burkina Faso","BF"],
+["Burundi","BI"],
+["Cambodia","KH"],
+["Cameroon","CM"],
+["Canada","CA"],
+["Cape Verde","CV"],
+["Chad","TD"],
+["Chile","CL"],
+["China","CN"],
+["Colombia","CO"],
+["Comoros","KM"],
+["Congo","CG"],
+["Costa Rica","CR"],
+["Ivory Coast","CI"],
+["Croatia","HR"],
+["Cuba","CU"],
+["Cyprus","CY"],
+["Czechia","CZ"],
+["Denmark","DK"],
+["Djibouti","DJ"],
+["Dominica","DM"],
+["Dominican Republic","DO"],
+["Ecuador","EC"],
+["Egypt","EG"],
+["El Salvador","SV"],
+["Equatorial Guinea","GQ"],
+["Eritrea","ER"],
+["Estonia","EE"],
+["Eswatini","SZ"],
+["Ethiopia","ET"],
+["Fiji","FJ"],
+["Finland","FI"],
+["France","FR"],
+["Gabon","GA"],
+["Gambia","GM"],
+["Georgia","GE"],
+["Germany","DE"],
+["Ghana","GH"],
+["Greece","GR"],
+["Grenada","GD"],
+["Guatemala","GT"],
+["Guinea","GN"],
+["Guinea-Bissau","GW"],
+["Guyana","GY"],
+["Haiti","HT"],
+["Honduras","HN"],
+["Hungary","HU"],
+["Iceland","IS"],
+["India","IN"],
+["Indonesia","ID"],
+["Iran","IR"],
+["Iraq","IQ"],
+["Ireland","IE"],
+["Israel","IL"],
+["Italy","IT"],
+["Jamaica","JM"],
+["Japan","JP"],
+["Jordan","JO"],
+["Kazakhstan","KZ"],
+["Kenya","KE"],
+["Kiribati","KI"],
+["North Korea","KP"],
+["South Korea","KR"],
+["Kuwait","KW"],
+["Kyrgyzstan","KG"],
+["Laos","LA"],
+["Latvia","LV"],
+["Lebanon","LB"],
+["Lesotho","LS"],
+["Liberia","LR"],
+["Libya","LY"],
+["Liechtenstein","LI"],
+["Lithuania","LT"],
+["Luxembourg","LU"],
+["Madagascar","MG"],
+["Malaysia","MY"],
+["Maldives","MV"],
+["Mali","ML"],
+["Malta","MT"],
+["Marshall Islands","MH"],
+["Mauritania","MR"],
+["Mauritius","MU"],
+["Mexico","MX"],
+["Micronesia","FM"],
+["Moldova","MD"],
+["Monaco","MC"],
+["Mongolia","MN"],
+["Montenegro","ME"],
+["Morocco","MA"],
+["Mozambique","MZ"],
+["Myanmar","MM"],
+["Namibia","NA"],
+["Nauru","NR"],
+["Nepal","NP"],
+["Netherlands","NL"],
+["New Zealand","NZ"],
+["Nicaragua","NI"],
+["Niger","NE"],
+["Nigeria","NG"],
+["North Macedonia","MK"],
+["Norway","NO"],
+["Oman","OM"],
+["Pakistan","PK"],
+["Panama","PA"],
+["Papua New Guinea","PG"],
+["Paraguay","PY"],
+["Peru","PE"],
+["Philippines","PH"],
+["Poland","PL"],
+["Portugal","PT"],
+["Qatar","QA"],
+["Romania","RO"],
+["Russia","RU"],
+["Rwanda","RW"],
+["Saudi Arabia","SA"],
+["Senegal","SN"],
+["Serbia","RS"],
+["Seychelles","SC"],
+["Sierra Leone","SL"],
+["Singapore","SG"],
+["Slovakia","SK"],
+["Slovenia","SI"],
+["Solomon Islands","SB"],
+["Somalia","SO"],
+["South Africa","ZA"],
+["Sudan","SD"],
+["South Sudan","SS"],
+["Spain","ES"],
+["Sri Lanka","LK"],
+["Suriname","SR"],
+["Sweden","SE"],
+["Switzerland","CH"],
+["Syria","SY"],
+["Thailand","TH"],
+["Tanzania","TZ"],
+["Tajikistan","TJ"],
+["Timor-Leste","TL"],
+["Togo","TG"],
+["Tonga","TO"],
+["Trinidad and Tobago","TT"],
+["Tunisia","TN"],
+["Turkey","TR"],
+["Turkmenistan","TM"],
+["Tuvalu","TV"],
+["Uganda","UG"],
+["Ukraine","UA"],
+["United Arab Emirates","AE"],
+["United Kingdom","GB"],
+["United States","US"],
+["Uruguay","UY"],
+["Uzbekistan","UZ"],
+["Vatican City","VA"],
+["Venezuela","VE"],
+["Vietnam","VN"],
+["Yemen","YE"],
+["Zambia","ZM"],
+["Zimbabwe","ZW"],
+["Palestine","PS"],
+["Kosovo","XK"],
+["Taiwan","TW"],
+["Puerto Rico","PR"],
+["Hong Kong","HK"],
+["Macau","MO"],
+["Greenland","GL"],
+["Faroe Islands","FO"],
+["Guam","GU"],
+["American Samoa","AS"],
+["Cayman Islands","KY"],
+["British Virgin Islands","VG"],
+["U.S. Virgin Islands","VI"],
+["Bermuda","BM"],
+["Gibraltar","GI"],
+["Curacao","CW"],
+["Aruba","AW"],
+["Bonaire","BQ"],
+["Saint Martin","MF"],
+["Saint Barthelemy","BL"],
+["Martinique","MQ"],
+["Guadeloupe","GP"],
+["Réunion","RE"],
+["Mayotte","YT"],
+["New Caledonia","NC"],
+["French Polynesia","PF"],
+["Wallis and Futuna","WF"],
+["Falkland Islands","FK"],
+["Antarctica","AQ"]
+
+];
+
+/* =========================================
+   COUNTRY LOOKUP
+========================================= */
+
+const countryByCode = new Map(
+    countries.map(([name, code]) => [
+        code,
+        { name, code }
+    ])
+);
+
+const allCodes = countries.map(country => country[1]);
+
+/* =========================================
+   DIFFICULTY POOLS
+========================================= */
+
+const EASY_CODES = [
+    "US","CN","IN","BR","RU","JP","DE","GB","FR","IT",
+    "CA","MX","AU","ES","KR","AR","TH","NL","SA","ZA",
+    "EG","NG","SE","CH","PL"
+];
+
+const NORMAL_EXTRA = [
+    "PH","VN","CO","PE","PK","NO","NZ","IR","GR","PT",
+    "IE","HU","IL","SG","BE","DK","MY","CL","EC","VE",
+    "CR","BD","IQ","MA","DZ"
+];
+
+const DIFFICULT_EXTRA = [
+    "KZ","UZ","TJ","KG","LK","NP","KH","LA","MM","JO",
+    "KW","OM","QA","AE","BH","IS","FI","HR","RS","BA",
+    "ME","MK","RO","BG","SK","SI","LV","LT","EE","MV",
+    "TN","PA","PY","BO","HN","GT","SV","NI","CU","DO",
+    "JM","HT","TT","AD","AG","BS","BB","BZ","BJ","BT",
+    "BW","BN","BF","BI","CV"
+];
+
+const uniqueCodes = codes => [...new Set(codes)];
+
+const DIFFICULTY_POOLS = {
+
+    easy: uniqueCodes(EASY_CODES),
+
+    normal: uniqueCodes([
+        ...EASY_CODES,
+        ...NORMAL_EXTRA
+    ]),
+
+    difficult: uniqueCodes([
+        ...EASY_CODES,
+        ...NORMAL_EXTRA,
+        ...DIFFICULT_EXTRA
+    ]),
+
+    veryDifficult: allCodes,
+
+    hardcore: allCodes
+
+};
+
+const DIFFICULTY_LIMITS = {
+
+    easy: 25,
+
+    normal: 50,
+
+    difficult: 100,
+
+    veryDifficult: allCodes.length,
+
+    hardcore: allCodes.length
+
+};
+
+/* =========================================
+   GAME VARIABLES
+========================================= */
+
+let activeCountries = [];
+let remainingCountries = [];
+
+let score = 0;
+let answered = 0;
+let maxQuestions = 0;
+
+let currentCountry = null;
+let answerLocked = false;
+let currentMode = "";
+
+let gameSession = 0;
+
+const homeButton = document.getElementById("homeButton");
+const flagImage = document.getElementById("flag");
+
+const flagFallback = document.getElementById("flagFallback");
+const flagEmoji = document.getElementById("flagEmoji");
+const flagCode = document.getElementById("flagCode");
+
+/* =========================================
+   UTILITIES
+========================================= */
+
+function shuffle(array) {
+
+    const result = [...array];
+
+    for (let i = result.length - 1; i > 0; i--) {
+
+        const j = Math.floor(Math.random() * (i + 1));
+
+        [result[i], result[j]] = [result[j], result[i]];
+
+    }
+
+    return result;
+
+}
+
+function disableAnswerButtons() {
+
+    document.querySelectorAll("#options button")
+        .forEach(button => {
+            button.disabled = true;
+        });
+
+}
+
+function enableDifficultyButtons() {
+
+    document.querySelectorAll("#difficulty-selection button")
+        .forEach(button => {
+            button.disabled = false;
+        });
+
+    homeButton.disabled = true;
+
+}
+
+/* =========================================
+   FLAG LOADING AND FALLBACK
+========================================= */
+
+function getFlagEmoji(code) {
+
+    return code
+        .toUpperCase()
+        .split("")
+        .map(letter =>
+            String.fromCodePoint(127397 + letter.charCodeAt(0))
+        )
+        .join("");
+
+}
+
+function loadFlag(country) {
+
+    flagImage.style.display = "block";
+    flagFallback.hidden = true;
+
+    flagEmoji.textContent = getFlagEmoji(country.code);
+    flagCode.textContent = country.code;
+
+    flagImage.onerror = function () {
+
+        flagImage.style.display = "none";
+        flagFallback.hidden = false;
+
+    };
+
+    flagImage.onload = function () {
+
+        flagImage.style.display = "block";
+        flagFallback.hidden = true;
+
+    };
+
+    flagImage.src =
+        `https://flagcdn.com/w320/${country.code.toLowerCase()}.png`;
+
+}
+
+/* =========================================
+   MENU
+========================================= */
+
+function goToMenu() {
+
+    gameSession++;
+
+    document.getElementById("quiz").style.display = "none";
+
+    document.getElementById("difficulty-selection").style.display = "flex";
+
+    document.getElementById("message").textContent = "";
+
+    document.getElementById("options").innerHTML = "";
+
+    enableDifficultyButtons();
+
+}
+
+/* =========================================
+   START GAME
+========================================= */
+
+function startGame(level) {
+
+    gameSession++;
+
+    document.getElementById("difficulty-selection").style.display = "none";
+
+    document.getElementById("quiz").style.display = "flex";
+
+    homeButton.disabled = false;
+
+    currentMode = level;
+
+    activeCountries = DIFFICULTY_POOLS[level]
+        .map(code => countryByCode.get(code))
+        .filter(Boolean);
+
+    maxQuestions = Math.min(
+        DIFFICULTY_LIMITS[level],
+        activeCountries.length
+    );
+
+    remainingCountries = shuffle(activeCountries);
+
+    score = 0;
+    answered = 0;
+
+    currentCountry = null;
+
+    answerLocked = false;
+
+    document.getElementById("message").textContent = "";
+
+    showNextFlag();
+
+}
+
+/* =========================================
+   NEXT FLAG
+========================================= */
+
+function showNextFlag() {
+
+    answerLocked = false;
+
+    document.getElementById("message").textContent = "";
+
+    if (answered >= maxQuestions) {
+
+        finishGame();
+
+        return;
+
+    }
+
+    currentCountry = remainingCountries.pop();
+
+    loadFlag(currentCountry);
+
+    const wrongAnswers = shuffle(
+
+        activeCountries.filter(country =>
+
+            country !== currentCountry
+
+        )
+
+    ).slice(0, 3);
+
+    const options = shuffle([
+
+        currentCountry.name,
+
+        ...wrongAnswers.map(country => country.name)
+
+    ]);
+
+    const optionsContainer = document.getElementById("options");
+
+    optionsContainer.innerHTML = "";
+
+    options.forEach(option => {
+
+        const button = document.createElement("button");
+
+        button.textContent = option;
+
+        button.onclick = () => checkAnswer(option);
+
+        optionsContainer.appendChild(button);
+
+    });
+
+    updateScore();
+
+}
+
+/* =========================================
+   CHECK ANSWER
+========================================= */
+
+function checkAnswer(answer) {
+
+    if (answerLocked) return;
+
+    answerLocked = true;
+
+    disableAnswerButtons();
+
+    const message = document.getElementById("message");
+
+    answered++;
+
+    if (answer === currentCountry.name) {
+
+        score++;
+
+        message.textContent = "✅ Correct!";
+
+        message.style.color = "green";
+
+    } else {
+
+        message.textContent = `❌ Incorrect. The answer was ${currentCountry.name}`;
+
+        message.style.color = "red";
+
+        if (currentMode === "hardcore") {
+
+            message.textContent =
+                `💀 GAME OVER! The correct answer was ${currentCountry.name}. 💀`;
+
+            updateScore();
+
+            const session = gameSession;
+
+            setTimeout(() => {
+
+                if (session === gameSession) {
+
+                    goToMenu();
+
+                }
+
+            }, 3000);
+
+            return;
+
+        }
+
+    }
+
+    updateScore();
+
+    const session = gameSession;
+
+    setTimeout(() => {
+
+        if (session === gameSession) {
+
+            showNextFlag();
+
+        }
+
+    }, 900);
+
+}
+
+/* =========================================
+   FINISH GAME
+========================================= */
+
+function finishGame() {
+
+    disableAnswerButtons();
+
+    const message = document.getElementById("message");
+
+    message.textContent =
+        `🏁 You guessed ${score} out of ${maxQuestions} flags! 🏁`;
+
+    message.style.color = "#174c25";
+
+    updateScore();
+
+    const session = gameSession;
+
+    setTimeout(() => {
+
+        if (session === gameSession) {
+
+            goToMenu();
+
+        }
+
+    }, 3000);
+
+}
+
+/* =========================================
+   SCORE
+========================================= */
+
+function updateScore() {
+
+    document.getElementById("score").textContent =
+        `Score: ${score} / ${maxQuestions}`;
+
+}
+
+</script>
+
+</body>
+</html>
